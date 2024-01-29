@@ -40,7 +40,7 @@ class PalCog(commands.Cog, group_name='pal'):
 
     def start_wait_pal_server(self, ctx:commands.Context):
         loop = asyncio.new_event_loop()
-        asyncio.run_coroutine_threadsafe(self.wait_pal_server_wakeup(ctx), lopp=loop)
+        asyncio.run_coroutine_threadsafe(self.wait_pal_server_wakeup(ctx), loop=loop)
 
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
         await ctx.send("PalWorldサーバーを起動します。")
