@@ -11,7 +11,9 @@ class DiscordBot(commands.Bot):
         
     async def setup_hook(self) -> None:
         print("セットアップの開始...")
+        print("グローバルコマンドを登録します。")
         await self.tree.sync(guild=None)
+        print("グローバルコマンド登録完了")
         guilds = const.get_guilds()
 
         for g in guilds:
