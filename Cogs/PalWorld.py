@@ -24,8 +24,18 @@ class PalCog(commands.Cog, group_name='pal'):
 
 
     @pal.command(name="start", description="PalWorldサーバーを起動します。")
-    async def start(self, ctx:commands.Context):  
+    async def start(self, ctx:commands.Context):
+
+        if self.wait_pal_server_wakeup.is_running == True:
+            self.wait_pal_server_wakeup.stop()
+
+        if self.get_is_pal_server_running() == True:
+            print("PalWorldサーバーが既に起動しています。")
+            await ctx.send("PalWorldサーバーが既に起動しています。")
+            return
+        
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
+
         self.startCtx = ctx
 
         await self.announce_pal_server_start()
@@ -34,6 +44,12 @@ class PalCog(commands.Cog, group_name='pal'):
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
     async def stop(self, ctx:commands.Context):
+
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。")
+            return
+        
         print("PalWorldサーバーを停止します。")
         await ctx.send("PalWorldサーバーを停止します。")
         await self.send_rcon_command("DoExit")
@@ -48,33 +64,31 @@ class PalCog(commands.Cog, group_name='pal'):
     @tasks.loop(seconds=5)
     async def wait_pal_server_wakeup(self):
         # 起動まで待つ
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(3)
-                # RCONポートに接続できたら起動完了
-                s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
-                print("PALWORLD RCONポート接続成功")
-                await self.startCtx.send("PalWorldサーバーが起動しました。")
-                self.wait_pal_server_stop.start()       
-                self.wait_pal_server_wakeup.cancel()
-                return
-
-        except:
-            print("PALWORLD RCONポート接続失敗")
-            print("再接続開始...")
+        if self.get_is_pal_server_running() == False:
+            return
+        
+        print("PALWORLD RCONポート接続成功")
+        await self.startCtx.send("PalWorldサーバーが起動しました。")
+        self.wait_pal_server_stop.start()       
+        self.wait_pal_server_wakeup.stop()
 
 
     @tasks.loop(seconds=5)
     async def wait_pal_server_stop(self):# 停止まで待つ
+        if self.get_is_pal_server_running() == True:
+            return
+                
+        await self.announce_pal_server_stop()
+        self.wait_pal_server_stop.stop()
+        
+    def get_is_pal_server_running(self):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(5)
                 s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
-                
+                return True
         except:
-            await self.announce_pal_server_stop()
-            self.wait_pal_server_stop.stop()
-            return
+            return False
 
 
     async def announce_pal_server_start(self):        
