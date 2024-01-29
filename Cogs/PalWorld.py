@@ -2,6 +2,7 @@ import os
 import asyncio
 import subprocess
 import socket
+from multiprocessing import Process
 from mcrcon import MCRcon
 from discord.ext import commands
 
@@ -22,10 +23,11 @@ class PalCog(commands.Cog, group_name='pal'):
     async def start(self, ctx:commands.Context):
         print("PalWorldサーバーを起動します。")
         await ctx.send("PalWorldサーバーを起動します。")
+        p = Process(target=self.start_pal_server, args=("ctx",))
+        p.start()
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.wait_pal_server_wakeup(ctx))
-        subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
-        await ctx.send("PalWorldサーバーが停止しました。")
+        
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
     async def stop(self, ctx:commands.Context):
@@ -38,7 +40,15 @@ class PalCog(commands.Cog, group_name='pal'):
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
 
-    async def wait_pal_server_wakeup(ctx:commands.Context):
+    def start_pal_server(self, ctx:commands.Context):
+        subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.stopped_announce(ctx))
+
+    async def stopped_announce(self, ctx:commands.Context):
+        await ctx.send("PalWorldサーバーが停止しました。")
+
+    async def wait_pal_server_wakeup(self, ctx:commands.Context):
         while True:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
