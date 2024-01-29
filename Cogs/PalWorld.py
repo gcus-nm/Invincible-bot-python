@@ -28,8 +28,8 @@ class PalCog(commands.Cog, group_name='pal'):
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
         self.startCtx = ctx
 
-        await self.announce_pal_server_start(ctx)
-        self.wait_pal_server_wakeup.start(ctx)
+        await self.announce_pal_server_start()
+        self.wait_pal_server_wakeup.start()
 
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
