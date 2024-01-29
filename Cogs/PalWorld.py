@@ -39,8 +39,7 @@ class PalCog(commands.Cog, group_name='pal'):
         await self.send_rcon_command(command, ctx)
 
     def start_wait_pal_server(self, ctx:commands.Context):
-        loop = asyncio.new_event_loop()
-        asyncio.run(self.wait_pal_server_wakeup(ctx), loop=loop)
+        asyncio.run(self.wait_pal_server_wakeup(ctx))
 
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
         await ctx.send("PalWorldサーバーを起動します。")
