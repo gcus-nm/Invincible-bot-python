@@ -4,8 +4,6 @@ from discord.ext import commands
 
 class PalCog(commands.Cog, group_name='pal'):
 
-    start_process_command = os.getenv("PALWORLD_START_COMMAND")
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -20,7 +18,8 @@ class PalCog(commands.Cog, group_name='pal'):
     @pal.command(name="start", description="PalWorldサーバーを起動します。")
     async def start(self, ctx:commands.Context):
         print("palWorldサーバーを起動します。")
-        subprocess.run(self.start_process_command, shell=True)
+        print(os.getenv("PALWORLD_START_COMMAND"))
+        subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
         await ctx.send("wake up, palWorld!")
 
 async def setup(bot):
