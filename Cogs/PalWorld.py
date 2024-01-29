@@ -37,8 +37,11 @@ class PalCog(commands.Cog, group_name='pal'):
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
 
-    @tasks.loop(seconds=3)
+    @tasks.loop(count=1)
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
+        await ctx.send("PalWorldサーバーを起動します。")
+        print(f"接続情報:　IP: {os.getenv('PALWORLD_SERVER_IP_ADDRESS')}, Port: {int(os.getenv('PALWORLD_RCON_PORT'))}")
+
         # 起動まで待つ
         while True:
             try:
@@ -67,17 +70,9 @@ class PalCog(commands.Cog, group_name='pal'):
                 break
         pass
 
-        self.wait_pal_server_wakeup.stop(ctx)
-
-    @wait_pal_server_wakeup.before_loop
-    async def before_wait_pal_server_wakeup(self, ctx:commands.Context):
-        await ctx.send("PalWorldサーバーを起動します。")
-        print(f"接続情報:　IP: {os.getenv('PALWORLD_SERVER_IP_ADDRESS')}, Port: {int(os.getenv('PALWORLD_RCON_PORT'))}")
-
-    @wait_pal_server_wakeup.after_loop
-    async def after_wait_pal_server_wakeup(self, ctx:commands.Context):
         await ctx.send("PalWorldサーバーが停止しました。")
         print("PalWorldサーバーが停止しました。")
+        self.wait_pal_server_wakeup.stop(ctx)
 
     async def send_rcon_command(self, command:str, ctx:commands.Context=None):
         with MCRcon(os.getenv("PALWORLD_SERVER_IP_ADDRESS"), os.getenv("PALWORLD_ADMIN_PASSWORD"), int(os.getenv("PALWORLD_RCON_PORT"))) as mcr:
