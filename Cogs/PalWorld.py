@@ -24,9 +24,7 @@ class PalCog(commands.Cog, group_name='pal'):
         print("PalWorldサーバーを起動します。")        
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
 
-        await self.wait_pal_server_wakeup(ctx)
-
-        waitThread = Thread(target=self.wait_pal_server_wakeup, args=(ctx,))
+        waitThread = Thread(target=self.start_wait_pal_server, args=(ctx,))
         waitThread.start()
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
@@ -39,6 +37,9 @@ class PalCog(commands.Cog, group_name='pal'):
     async def cmd(self, ctx:commands.Context, *, command:str):
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
+
+    def start_wait_pal_server(self, ctx:commands.Context):
+        asyncio.run(self.wait_pal_server_wakeup(ctx))
 
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
         await ctx.send("PalWorldサーバーを起動します。")
