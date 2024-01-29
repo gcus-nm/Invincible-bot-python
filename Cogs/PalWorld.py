@@ -22,7 +22,6 @@ class PalCog(commands.Cog, group_name='pal'):
     @pal.command(name="start", description="PalWorldサーバーを起動します。")
     async def start(self, ctx:commands.Context):
         print("PalWorldサーバーを起動します。")
-        await ctx.send("PalWorldサーバーを起動します。")
         p = Process(target=self.start_pal_server, args=("ctx",))
         p.start()
         loop = asyncio.get_event_loop()
@@ -42,13 +41,9 @@ class PalCog(commands.Cog, group_name='pal'):
 
     def start_pal_server(self, ctx:commands.Context):
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.stopped_announce(ctx))
-
-    async def stopped_announce(self, ctx:commands.Context):
-        await ctx.send("PalWorldサーバーが停止しました。")
 
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
+        await ctx.send("PalWorldサーバーを起動します。")
         while True:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
