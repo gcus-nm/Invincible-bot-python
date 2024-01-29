@@ -2,7 +2,7 @@ import os
 import asyncio
 import subprocess
 import socket
-from threading import Thread
+import threading
 from mcrcon import MCRcon
 from discord.ext import commands
 
@@ -24,7 +24,7 @@ class PalCog(commands.Cog, group_name='pal'):
         print("PalWorldサーバーを起動します。")        
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
 
-        waitThread = Thread(target=self.start_wait_pal_server, args=(ctx,))
+        waitThread = threading.Thread(target=self.start_wait_pal_server, args=(ctx,))
         waitThread.start()
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
@@ -40,7 +40,7 @@ class PalCog(commands.Cog, group_name='pal'):
 
     def start_wait_pal_server(self, ctx:commands.Context):
         loop = asyncio.new_event_loop()
-        asyncio.run_coroutine_threadsafe(self.wait_pal_server_wakeup(ctx), loop=loop)
+        asyncio.run(self.wait_pal_server_wakeup(ctx), loop=loop)
 
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
         await ctx.send("PalWorldサーバーを起動します。")
