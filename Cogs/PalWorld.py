@@ -53,7 +53,7 @@ class PalCog(commands.Cog, group_name='pal'):
                 print("PALWORLD RCONポート接続成功")
                 await ctx.send("PalWorldサーバーが起動しました。")
                 self.wait_pal_server_stop.start(ctx)       
-                self.wait_pal_server_wakeup.stop(ctx)
+                self.wait_pal_server_wakeup.cancel(ctx)
                 return
 
         except:
@@ -70,7 +70,7 @@ class PalCog(commands.Cog, group_name='pal'):
                 
         except:
             await self.announce_pal_server_stop()
-            self.wait_pal_server_stop.stop(ctx)
+            self.wait_pal_server_stop.cancel(ctx)
             return
 
 
