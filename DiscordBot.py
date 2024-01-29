@@ -1,6 +1,7 @@
 import asyncio
 import discord
 import os
+from StaticValue import Guild as const
 from dotenv import load_dotenv
 from discord.ext import commands
 
@@ -10,15 +11,17 @@ class DiscordBot(commands.Bot):
         
     async def setup_hook(self) -> None:
         print("セットアップの開始...")
-        # Bot開発用サーバー, メインのサーバー
-        guild_ids = [951653786307395605, 780434910199808011]
         await self.tree.sync(guild=None)
+        guilds = const.get_guilds()
 
-        for g in guild_ids:
+        for g in guilds:
+            guildName = const.GUILD_SERVER_ID_DICT[g.id]
+            print(f"サーバー:{guildName}にコマンドを登録します。")
             try:
-                self.tree.copy_global_to(guild=discord.Object(g))
-            except discord.errors.Forbidden:
-                print(f"サーバーID:{g}に登録できませんでした。")
+                self.tree.copy_global_to(guild=g)
+                print(f"サーバー:{guildName}にコマンドを登録しました。")
+            except:
+                print(f"サーバーID:{guildName}にコマンドを登録できませんでした。")
         print("セットアップ完了")
 
 async def main():
