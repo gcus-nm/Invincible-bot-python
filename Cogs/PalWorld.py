@@ -54,12 +54,11 @@ class PalCog(commands.Cog, group_name='pal'):
                 await ctx.send("PalWorldサーバーが起動しました。")
                 self.wait_pal_server_stop.start(ctx)       
                 self.wait_pal_server_wakeup.stop(ctx)
+                return
 
         except:
             print("PALWORLD RCONポート接続失敗")
             print("再接続開始...")
-        
-        
 
 
     @tasks.loop(seconds=5)
@@ -72,6 +71,7 @@ class PalCog(commands.Cog, group_name='pal'):
         except:
             await self.announce_pal_server_stop()
             self.wait_pal_server_stop.stop(ctx)
+            return
 
 
     async def announce_pal_server_start(self, ctx:commands.Context):        
@@ -91,7 +91,7 @@ class PalCog(commands.Cog, group_name='pal'):
             print(resp)
 
             if ctx != None:
-                await ctx.send(resp)
+                await ctx.send(f"コマンド結果：{resp}")
 
             return resp
         
