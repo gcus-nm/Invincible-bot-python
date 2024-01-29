@@ -45,36 +45,33 @@ class PalCog(commands.Cog, group_name='pal'):
     @tasks.loop(seconds=5)
     async def wait_pal_server_wakeup(self, ctx:commands.Context):
         # 起動まで待つ
-        while True:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(3)
-                    # RCONポートに接続できたら起動完了
-                    s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
-                    print("PALWORLD RCONポート接続成功")
-                    await ctx.send("PalWorldサーバーが起動しました。")
-                    break
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(3)
+                # RCONポートに接続できたら起動完了
+                s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
+                print("PALWORLD RCONポート接続成功")
+                await ctx.send("PalWorldサーバーが起動しました。")
+                self.wait_pal_server_stop.start(ctx)       
+                self.wait_pal_server_wakeup.stop(ctx)
 
-            except:
-                print("PALWORLD RCONポート接続失敗")
-                print("再接続開始...")
+        except:
+            print("PALWORLD RCONポート接続失敗")
+            print("再接続開始...")
         
-        self.wait_pal_server_wakeup.stop(ctx)
-        self.wait_pal_server_stop.start(ctx)       
+        
 
 
     @tasks.loop(seconds=5)
     async def wait_pal_server_stop(self, ctx:commands.Context):# 停止まで待つ
-        while True:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(5)
-                    s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
-                    
-            except:
-                await self.announce_pal_server_stop()
-                self.wait_pal_server_stop.stop(ctx)
-                break        
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(5)
+                s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
+                
+        except:
+            await self.announce_pal_server_stop()
+            self.wait_pal_server_stop.stop(ctx)
 
 
     async def announce_pal_server_start(self, ctx:commands.Context):        
