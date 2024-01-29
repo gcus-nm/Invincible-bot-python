@@ -53,6 +53,16 @@ class PalCog(commands.Cog, group_name='pal'):
         print("PalWorldサーバーを停止します。")
         await ctx.send("PalWorldサーバーを停止します。")
         await self.send_rcon_command("DoExit")
+        
+
+    @pal.command(name="status", description="PalWorldサーバーの状態を確認します。")
+    async def status(self, ctx:commands.Context):
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。")
+            return
+
+        await ctx.send("PalWorldサーバーに接続出来ました。")
 
 
     @pal.command(name="cmd", description="PalWorldサーバーでコマンドを使用します。")
