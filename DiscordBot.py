@@ -73,17 +73,22 @@ async def main():
             print(f"有効化完了: {cog}")
             
     # Botを起動
-    load_dotenv()
+    
     TOKEN = os.getenv("TOKEN")
     print(f"起動します... \nトークン : {TOKEN}")
     await bot.start(TOKEN)
+
+
+load_dotenv()
+ENV = os.getenv("ENV")
+load_dotenv(f"env/.env.{ENV}")
 
 # Client生成
 intents = discord.Intents.all()
 intents.reactions = True
 intents.guilds = True
 intents.message_content = True
-bot = DiscordBot(command_prefix='/', intents=intents)
+bot = DiscordBot(command_prefix=os.getenv("COMMAND_PREFIX"), intents=intents)
 
 if __name__ == "__main__":    
     asyncio.run(main())
