@@ -1,11 +1,21 @@
 import asyncio
 import discord
 import os
+from enum import Enum
 from StaticValue import Guild as const
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord.ext import tasks
+
+class ProcessStatus(Enum):
+    NOTHING = 0
+    PALWORLD = 1 << 0
 
 class DiscordBot(commands.Bot):
+
+    process_status: ProcessStatus = ProcessStatus.NOTHING
+    process_count: int = 0
+
     def __init__(self, command_prefix: str, intents: discord.Intents, help_command=None):
         super().__init__(command_prefix=command_prefix, intents=intents, help_command=help_command)
         
@@ -25,6 +35,31 @@ class DiscordBot(commands.Bot):
             except:
                 print(f"サーバーID:{guildName}にコマンドを登録できませんでした。")
         print("セットアップ完了")
+
+    async def on_ready(self) -> None:
+        self.update_game_status.start()
+
+    async def add_status(self, status:ProcessStatus, ) -> None:
+        self.process_status |= status
+
+    async def remove_status(self, status:ProcessStatus, ) -> None:
+        self.process_status &= ~status
+
+    @tasks.loop(seconds=15)
+    async def update_game_status(self):
+        if self.process_status == ProcessStatus.NOTHING:
+            self.process_count = 0
+            await self.change_presence(activity=discord.Game(name="待機中"))
+            return
+        
+        check_bit = (1 << self.process_count)
+        if self.process_status.value & check_bit == check_bit:
+            await self.change_presence(activity=discord.Game(name=f"{self.process_status.name}"))
+            
+        self.process_count += 1
+        if self.process_count >= len(ProcessStatus):
+            self.process_count = 0
+
 
 async def main():
     #Cogフォルダ名
