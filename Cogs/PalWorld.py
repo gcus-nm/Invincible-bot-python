@@ -27,13 +27,11 @@ class PalCog(commands.Cog, group_name='pal'):
     @pal.command(name="start", description="PalWorldサーバーを起動します。")
     async def start(self, ctx:commands.Context):
 
-        if self.wait_pal_server_wakeup.is_running == True:
-            self.wait_pal_server_wakeup.stop()
-
         if self.get_is_pal_server_running() == True:
             print("PalWorldサーバーが既に起動しています。")
             await ctx.send("PalWorldサーバーが既に起動しています。")
             return
+
         
         thread = threading.Thread(target=self.start_pal_server)
         thread.start()
@@ -41,7 +39,9 @@ class PalCog(commands.Cog, group_name='pal'):
         self.startCtx = ctx
 
         await self.announce_pal_server_start()
-        self.wait_pal_server_wakeup.start()
+
+        if self.wait_pal_server_wakeup.is_running == False:
+            self.wait_pal_server_wakeup.start()
 
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
@@ -81,8 +81,10 @@ class PalCog(commands.Cog, group_name='pal'):
         
         print("PALWORLD RCONポート接続成功")
         await self.startCtx.send("PalWorldサーバーが起動しました。")
-        self.wait_pal_server_stop.start()       
         self.wait_pal_server_wakeup.stop()
+
+        if self.wait_pal_server_stop.is_running == False:
+            self.wait_pal_server_stop.start()
 
 
     @tasks.loop(seconds=5)
