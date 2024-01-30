@@ -2,6 +2,7 @@ import os
 import subprocess
 import socket
 import asyncio
+import threading
 from mcrcon import MCRcon
 from discord.ext import commands
 from discord.ext import tasks
@@ -34,7 +35,8 @@ class PalCog(commands.Cog, group_name='pal'):
             await ctx.send("PalWorldサーバーが既に起動しています。")
             return
         
-        subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
+        thread = threading.Thread(target=self.start_pal_server)
+        thread.start()
 
         self.startCtx = ctx
 
@@ -90,6 +92,9 @@ class PalCog(commands.Cog, group_name='pal'):
                 
         await self.announce_pal_server_stop()
         self.wait_pal_server_stop.stop()
+
+    def start_pal_server(self):
+        subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
         
     def get_is_pal_server_running(self):
         try:
