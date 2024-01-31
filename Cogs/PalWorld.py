@@ -50,6 +50,24 @@ class PalCog(commands.Cog, group_name='pal'):
         self.wait_pal_server_wakeup.start()
 
 
+    @pal.command(name="update", description="PalWorldサーバーを更新します。")
+    async def update(self, ctx:commands.Context):
+        if self.get_is_pal_server_running() == True:
+            print("PalWorldサーバーが起動しているので更新出来ません。")
+            await ctx.send("PalWorldサーバーが起動しているので更新出来ません。")
+            return
+
+        print("PalWorldサーバーを更新します。")
+        await ctx.send("PalWorldサーバーを更新します。")
+        
+        thread = threading.Thread(target=self.update_pal_server)
+        thread.start()
+        thread.join()
+
+        print("PalWorldサーバー更新完了")
+        await ctx.send("更新が完了しました。")
+
+
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
     @app_commands.rename(shutdown_time="シャットダウン時間")
     @app_commands.rename(shutdown_message="メッセージ")
@@ -163,6 +181,10 @@ class PalCog(commands.Cog, group_name='pal'):
 
     def start_pal_server(self):
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
+        
+
+    def update_pal_server(self):
+        subprocess.run(os.getenv("PALWORLD_UPDATE_COMMAND"), shell=True)
         
         
     def get_is_pal_server_running(self):
