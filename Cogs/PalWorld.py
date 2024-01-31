@@ -117,7 +117,7 @@ class PalCog(commands.Cog, group_name='pal'):
             return
         
         print("PALWORLD RCONポート接続成功")
-        await self.startCtx.send("PalWorldサーバーが起動しました。")
+        await self.startCtx.send(f"PalWorldサーバーが起動しました。\nIP: {os.getenv('PALWORLD_SERVER_GLOBAL_ADDRESS')}:{int(os.getenv('PALWORLD_SERVER_PORT'))}")
         self.bot.add_status(ProcessStatus.PALWORLD)
         await self.bot.update_status()
 
