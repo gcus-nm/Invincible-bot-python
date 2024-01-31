@@ -69,6 +69,18 @@ class PalCog(commands.Cog, group_name='pal'):
         print(message)
         await ctx.send(message)
         await self.send_rcon_command(cmd)
+
+
+    @pal.command(name="player", description="PalWorldサーバーに接続しているプレイヤーを確認します。")
+    async def player(self, ctx:commands.Context):
+        
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。")
+            return
+
+        resp = await self.send_rcon_command("ShowPlayers")
+        await ctx.send(f"プレイヤー一覧情報\n{resp}")
         
 
     @pal.command(name="status", description="PalWorldサーバーの状態を確認します。")
