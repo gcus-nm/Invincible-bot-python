@@ -113,6 +113,19 @@ class PalCog(commands.Cog, group_name='pal'):
     async def get_config(self, ctx:commands.Context):
         print(f"設定ファイル取得 -> {os.getenv('PALWORLD_CONFIG_DIR')}")
         await ctx.send("現在設定されている設定ファイル", file=discord.File(os.getenv("PALWORLD_CONFIG_DIR")))
+
+
+    @pal.command(name="update_config", description="PalWorldサーバーの設定ファイルを更新します。")
+    @app_commands.rename(config="設定ファイル")
+    @app_commands.describe(config=f"PalWorldサーバーの設定ファイル　※ファイル名は{os.getenv("PALWORLD_CONFIG_FILENAME")}にしてください。")
+    async def update_config(self, ctx:commands.Context, *, config:discord.Attachment):
+        if config.filename != os.getenv("PALWORLD_CONFIG_FILENAME"):
+            await ctx.send(f"設定ファイル名が違います。正しいファイル名は{os.getenv('PALWORLD_CONFIG_FILENAME')}です。")
+            return
+        
+        print(f"設定ファイル更新 -> {os.getenv('PALWORLD_CONFIG_DIR')}")
+        await config.save(os.getenv("PALWORLD_CONFIG_DIR"))
+        await ctx.send("設定ファイルを更新しました。")
         
 
     @tasks.loop(seconds=5)
