@@ -1,14 +1,26 @@
 import asyncio
 import discord
 import os
+from enum import IntFlag
 from StaticValue import Guild as const
 from dotenv import load_dotenv
 from discord.ext import commands
+from discord.ext import tasks
+
+class ProcessStatus(IntFlag):
+    NOTHING = 0
+    PALWORLD = 1 << 0
 
 class DiscordBot(commands.Bot):
+
+    process_status: ProcessStatus = ProcessStatus.NOTHING
+    process_count: int = 0
+
     def __init__(self, command_prefix: str, intents: discord.Intents, help_command=None):
         super().__init__(command_prefix=command_prefix, intents=intents, help_command=help_command)
-        
+
+
+    # on_ready前に実行されるイベント 
     async def setup_hook(self) -> None:
         print("セットアップの開始...")
         print("グローバルコマンドを登録します。")
@@ -25,6 +37,42 @@ class DiscordBot(commands.Bot):
             except:
                 print(f"サーバーID:{guildName}にコマンドを登録できませんでした。")
         print("セットアップ完了")
+
+
+    # Bot起動時に実行されるイベント
+    async def on_ready(self) -> None:
+        self.update_status_loop.start()
+
+
+    # Discord上に表示するゲームのプレイ中ステータスを追加する
+    def add_status(self, status: ProcessStatus) -> None:
+        self.process_status |= status
+        print("add_status: " + status.name)
+
+    # Discord上に表示するゲームのプレイ中ステータスを削除する
+    def remove_status(self, status: ProcessStatus) -> None:
+        self.process_status &= ~status
+        print("remove_status: " + status.name)
+
+    # Discord上に表示するゲームのプレイ中ステータスを即時に更新する
+    async def update_status(self) -> None:
+        if self.process_status == ProcessStatus.NOTHING:
+            self.process_count = 0
+            await self.change_presence(activity=discord.Game(name=f"待機中"))
+            return
+        
+        check_bit = (1 << self.process_count)
+        if self.process_status.value & check_bit == check_bit:
+            await self.change_presence(activity=discord.Game(name=f"{self.process_status.name}"))
+            
+        self.process_count += 1
+        if self.process_count >= len(ProcessStatus):
+            self.process_count = 0
+
+    @tasks.loop(seconds=15)
+    async def update_status_loop(self):
+        await self.update_status()
+
 
 async def main():
     #Cogフォルダ名
