@@ -2,6 +2,7 @@ import os
 import subprocess
 import socket
 import threading
+import discord
 from mcrcon import MCRcon
 from discord import app_commands
 from discord.ext import commands
@@ -98,8 +99,7 @@ class PalCog(commands.Cog, group_name='pal'):
 
 
     @pal.command(name="cmd", description="PalWorldサーバーでコマンドを使用します。")
-    async def cmd(self, ctx:commands.Context, *, command:str):
-        
+    async def cmd(self, ctx:commands.Context, *, command:str):        
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
             await ctx.send("PalWorldサーバーに接続出来ません。")
@@ -108,6 +108,12 @@ class PalCog(commands.Cog, group_name='pal'):
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
 
+
+    @pal.command(name="get_config", description="PalWorldサーバーの設定ファイルを取得します。")
+    async def get_config(self, ctx:commands.Context):
+        print(f"設定ファイル取得 -> {os.getenv('PALWORLD_CONFIG_DIR')}")
+        await ctx.send("現在設定されている設定ファイル", file=discord.File(os.getenv("PALWORLD_CONFIG_DIR")))
+        
 
     @tasks.loop(seconds=5)
     async def wait_pal_server_wakeup(self):
