@@ -38,7 +38,9 @@ class PalCog(commands.Cog, group_name='pal'):
 
         self.startCtx = ctx
 
-        await self.announce_pal_server_start()
+        print("PalWorldサーバーを起動します。")      
+        print(f"接続情報:　IP: {os.getenv('PALWORLD_SERVER_IP_ADDRESS')}, Port: {int(os.getenv('PALWORLD_RCON_PORT'))}")
+        await self.startCtx.send("PalWorldサーバーを起動します。")
 
         if self.wait_pal_server_wakeup.is_running == True:
             self.wait_pal_server_wakeup.stop()
@@ -101,7 +103,8 @@ class PalCog(commands.Cog, group_name='pal'):
             print("PALWORLD RCONポート接続中")
             return
                 
-        await self.announce_pal_server_stop()
+        print("PalWorldサーバーが停止しました。")
+        await self.startCtx.send("PalWorldサーバーが停止しました。")
         self.bot.remove_status(ProcessStatus.PALWORLD)
         await self.bot.update_status()
         self.wait_pal_server_stop.stop()
@@ -118,18 +121,7 @@ class PalCog(commands.Cog, group_name='pal'):
                 s.connect((os.getenv("PALWORLD_SERVER_IP_ADDRESS"), int(os.getenv("PALWORLD_RCON_PORT"))))
                 return True
         except:
-            return False
-
-
-    async def announce_pal_server_start(self):
-        print("PalWorldサーバーを起動します。")      
-        print(f"接続情報:　IP: {os.getenv('PALWORLD_SERVER_IP_ADDRESS')}, Port: {int(os.getenv('PALWORLD_RCON_PORT'))}")
-        await self.startCtx.send("PalWorldサーバーを起動します。")
-
-
-    async def announce_pal_server_stop(self):
-        print("PalWorldサーバーが停止しました。")
-        await self.startCtx.send("PalWorldサーバーが停止しました。")
+            return False        
 
 
     async def send_rcon_command(self, command:str, ctx:commands.Context=None):

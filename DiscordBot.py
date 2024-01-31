@@ -18,7 +18,9 @@ class DiscordBot(commands.Bot):
 
     def __init__(self, command_prefix: str, intents: discord.Intents, help_command=None):
         super().__init__(command_prefix=command_prefix, intents=intents, help_command=help_command)
-        
+
+
+    # on_ready前に実行されるイベント 
     async def setup_hook(self) -> None:
         print("セットアップの開始...")
         print("グローバルコマンドを登録します。")
@@ -36,17 +38,23 @@ class DiscordBot(commands.Bot):
                 print(f"サーバーID:{guildName}にコマンドを登録できませんでした。")
         print("セットアップ完了")
 
+
+    # Bot起動時に実行されるイベント
     async def on_ready(self) -> None:
         self.update_status_loop.start()
 
+
+    # Discord上に表示するゲームのプレイ中ステータスを追加する
     def add_status(self, status: ProcessStatus) -> None:
         self.process_status |= status
         print("add_status: " + status.name)
 
+    # Discord上に表示するゲームのプレイ中ステータスを削除する
     def remove_status(self, status: ProcessStatus) -> None:
         self.process_status &= ~status
         print("remove_status: " + status.name)
 
+    # Discord上に表示するゲームのプレイ中ステータスを即時に更新する
     async def update_status(self) -> None:
         if self.process_status == ProcessStatus.NOTHING:
             self.process_count = 0
