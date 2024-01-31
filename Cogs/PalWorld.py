@@ -72,25 +72,29 @@ class PalCog(commands.Cog, group_name='pal'):
 
 
     @pal.command(name="player", description="PalWorldサーバーに接続しているプレイヤーを確認します。")
-    async def player(self, ctx:commands.Context):
+    @app_commands.rename(is_ephemeral="自分だけに表示")
+    @app_commands.describe(is_ephemeral="他の人にボットのメッセージを見せないようにする")
+    async def player(self, ctx:commands.Context, is_ephemeral:bool = False):
         
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
-            await ctx.send("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。", ephemeral=is_ephemeral)
             return
 
         resp = await self.send_rcon_command("ShowPlayers")
-        await ctx.send(f"プレイヤー一覧情報\n{resp}")
+        await ctx.send(f"プレイヤー一覧情報\n{resp}", ephemeral=is_ephemeral)
         
 
     @pal.command(name="status", description="PalWorldサーバーの状態を確認します。")
-    async def status(self, ctx:commands.Context):
+    @app_commands.rename(is_ephemeral="自分だけに表示")
+    @app_commands.describe(is_ephemeral="他の人にボットのメッセージを見せないようにする")
+    async def status(self, ctx:commands.Context, is_ephemeral:bool = False):
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
-            await ctx.send("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。", ephemeral=is_ephemeral)
             return
 
-        await ctx.send("PalWorldサーバーに接続出来ました。")
+        await ctx.send("PalWorldサーバーに接続出来ました。", ephemeral=is_ephemeral)
 
 
     @pal.command(name="cmd", description="PalWorldサーバーでコマンドを使用します。")
