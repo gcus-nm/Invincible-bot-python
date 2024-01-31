@@ -95,6 +95,12 @@ class PalCog(commands.Cog, group_name='pal'):
 
     @pal.command(name="cmd", description="PalWorldサーバーでコマンドを使用します。")
     async def cmd(self, ctx:commands.Context, *, command:str):
+        
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。")
+            return
+        
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
 
