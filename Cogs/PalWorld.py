@@ -3,6 +3,7 @@ import subprocess
 import socket
 import threading
 from mcrcon import MCRcon
+from discord import app_commands
 from discord.ext import commands
 from discord.ext import tasks
 from DiscordBot import ProcessStatus
@@ -49,30 +50,61 @@ class PalCog(commands.Cog, group_name='pal'):
 
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
-    async def stop(self, ctx:commands.Context):
+    @app_commands.rename(shutdown_time="シャットダウン時間")
+    @app_commands.rename(shutdown_message="メッセージ")
+    @app_commands.describe(shutdown_time="停止までの時間（秒）")
+    @app_commands.describe(shutdown_message="シャットダウン開始時にサーバーで全員に通知するメッセージ")
+    async def stop(self, ctx:commands.Context, shutdown_time:int = 0, shutdown_message:str = None):
 
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
             await ctx.send("PalWorldサーバーに接続出来ません。")
             return
         
-        print("PalWorldサーバーを停止します。")
-        await ctx.send("PalWorldサーバーを停止します。")
-        await self.send_rcon_command("DoExit")
+        isDoExit = shutdown_time <= 0
+        stop_default_message = "PalWorldサーバーを停止します。"
+        message = f"{shutdown_time}秒後に" + stop_default_message + f"\n{shutdown_message}" if isDoExit == False else stop_default_message
+        cmd = f"Shutdown {shutdown_time} {shutdown_message}" if isDoExit == False else "DoExit"
+
+        print(message)
+        await ctx.send(message)
+        await self.send_rcon_command(cmd)
+
+
+    @pal.command(name="player", description="PalWorldサーバーに接続しているプレイヤーを確認します。")
+    @app_commands.rename(is_ephemeral="自分だけに表示")
+    @app_commands.describe(is_ephemeral="他の人にボットのメッセージを見せないようにする")
+    async def player(self, ctx:commands.Context, is_ephemeral:bool = False):
+        
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。", ephemeral=is_ephemeral)
+            return
+
+        resp = await self.send_rcon_command("ShowPlayers")
+        await ctx.send(f"プレイヤー一覧情報\n{resp}", ephemeral=is_ephemeral)
         
 
     @pal.command(name="status", description="PalWorldサーバーの状態を確認します。")
-    async def status(self, ctx:commands.Context):
+    @app_commands.rename(is_ephemeral="自分だけに表示")
+    @app_commands.describe(is_ephemeral="他の人にボットのメッセージを見せないようにする")
+    async def status(self, ctx:commands.Context, is_ephemeral:bool = False):
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
-            await ctx.send("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。", ephemeral=is_ephemeral)
             return
 
-        await ctx.send("PalWorldサーバーに接続出来ました。")
+        await ctx.send("PalWorldサーバーに接続出来ました。", ephemeral=is_ephemeral)
 
 
     @pal.command(name="cmd", description="PalWorldサーバーでコマンドを使用します。")
     async def cmd(self, ctx:commands.Context, *, command:str):
+        
+        if self.get_is_pal_server_running() == False:
+            print("PalWorldサーバーに接続出来ません。")
+            await ctx.send("PalWorldサーバーに接続出来ません。")
+            return
+        
         print(f"コマンド入力:{command}")
         await self.send_rcon_command(command, ctx)
 
