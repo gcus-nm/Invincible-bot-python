@@ -3,6 +3,7 @@ import subprocess
 import socket
 import threading
 from mcrcon import MCRcon
+from discord import app_commands
 from discord.ext import commands
 from discord.ext import tasks
 from DiscordBot import ProcessStatus
@@ -49,16 +50,25 @@ class PalCog(commands.Cog, group_name='pal'):
 
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
-    async def stop(self, ctx:commands.Context):
+    @app_commands.rename(shutdown_time="シャットダウン時間")
+    @app_commands.rename(shutdown_message="メッセージ")
+    @app_commands.describe(shutdown_time="停止までの時間（秒）")
+    @app_commands.describe(shutdown_message="シャットダウン開始時にサーバーで全員に通知するメッセージ")
+    async def stop(self, ctx:commands.Context, shutdown_time:int = 0, shutdown_message:str = None):
 
         if self.get_is_pal_server_running() == False:
             print("PalWorldサーバーに接続出来ません。")
             await ctx.send("PalWorldサーバーに接続出来ません。")
             return
         
-        print("PalWorldサーバーを停止します。")
-        await ctx.send("PalWorldサーバーを停止します。")
-        await self.send_rcon_command("DoExit")
+        isDoExit = shutdown_time <= 0
+        stop_default_message = "PalWorldサーバーを停止します。"
+        message = f"{shutdown_time}秒後に" + stop_default_message + f"\n{shutdown_message}" if isDoExit == False else stop_default_message
+        cmd = f"Shutdown {shutdown_time} {shutdown_message}" if isDoExit == False else "DoExit"
+
+        print(message)
+        await ctx.send(message)
+        await self.send_rcon_command(cmd)
         
 
     @pal.command(name="status", description="PalWorldサーバーの状態を確認します。")
