@@ -1,11 +1,11 @@
 import os
 import subprocess
 import socket
-import asyncio
 import threading
 from mcrcon import MCRcon
 from discord.ext import commands
 from discord.ext import tasks
+from DiscordBot import ProcessStatus
 
 class PalCog(commands.Cog, group_name='pal'):
 
@@ -30,8 +30,8 @@ class PalCog(commands.Cog, group_name='pal'):
         if self.get_is_pal_server_running() == True:
             print("PalWorldサーバーが既に起動しています。")
             await ctx.send("PalWorldサーバーが既に起動しています。")
+            self.bot.add_status(ProcessStatus.PALWORLD)
             return
-
         
         thread = threading.Thread(target=self.start_pal_server)
         thread.start()
@@ -40,8 +40,10 @@ class PalCog(commands.Cog, group_name='pal'):
 
         await self.announce_pal_server_start()
 
-        if self.wait_pal_server_wakeup.is_running == False:
-            self.wait_pal_server_wakeup.start()
+        if self.wait_pal_server_wakeup.is_running == True:
+            self.wait_pal_server_wakeup.stop()
+
+        self.wait_pal_server_wakeup.start()
 
 
     @pal.command(name="stop", description="PalWorldサーバーを停止します。")
@@ -77,26 +79,37 @@ class PalCog(commands.Cog, group_name='pal'):
     async def wait_pal_server_wakeup(self):
         # 起動まで待つ
         if self.get_is_pal_server_running() == False:
+            print("PALWORLD RCONポート接続待機中")
             return
         
         print("PALWORLD RCONポート接続成功")
         await self.startCtx.send("PalWorldサーバーが起動しました。")
-        self.wait_pal_server_wakeup.stop()
+        self.bot.add_status(ProcessStatus.PALWORLD)
+        await self.bot.update_status()
 
-        if self.wait_pal_server_stop.is_running == False:
-            self.wait_pal_server_stop.start()
+        if self.wait_pal_server_stop.is_running == True:
+            self.wait_pal_server_stop.stop()
+
+        self.wait_pal_server_stop.start()
+        self.wait_pal_server_wakeup.stop()
 
 
     @tasks.loop(seconds=5)
-    async def wait_pal_server_stop(self):# 停止まで待つ
+    async def wait_pal_server_stop(self):
+        # 停止まで待つ
         if self.get_is_pal_server_running() == True:
+            print("PALWORLD RCONポート接続中")
             return
                 
         await self.announce_pal_server_stop()
+        self.bot.remove_status(ProcessStatus.PALWORLD)
+        await self.bot.update_status()
         self.wait_pal_server_stop.stop()
+
 
     def start_pal_server(self):
         subprocess.run(os.getenv("PALWORLD_START_COMMAND"), shell=True)
+        
         
     def get_is_pal_server_running(self):
         try:
@@ -108,15 +121,15 @@ class PalCog(commands.Cog, group_name='pal'):
             return False
 
 
-    async def announce_pal_server_start(self):        
-        await self.startCtx.send("PalWorldサーバーを起動します。")
+    async def announce_pal_server_start(self):
         print("PalWorldサーバーを起動します。")      
         print(f"接続情報:　IP: {os.getenv('PALWORLD_SERVER_IP_ADDRESS')}, Port: {int(os.getenv('PALWORLD_RCON_PORT'))}")
+        await self.startCtx.send("PalWorldサーバーを起動します。")
 
 
     async def announce_pal_server_stop(self):
-        await self.startCtx.send("PalWorldサーバーが停止しました。")
         print("PalWorldサーバーが停止しました。")
+        await self.startCtx.send("PalWorldサーバーが停止しました。")
 
 
     async def send_rcon_command(self, command:str, ctx:commands.Context=None):

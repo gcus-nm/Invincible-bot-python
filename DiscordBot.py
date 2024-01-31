@@ -1,13 +1,13 @@
 import asyncio
 import discord
 import os
-from enum import Enum
+from enum import IntFlag
 from StaticValue import Guild as const
 from dotenv import load_dotenv
 from discord.ext import commands
 from discord.ext import tasks
 
-class ProcessStatus(Enum):
+class ProcessStatus(IntFlag):
     NOTHING = 0
     PALWORLD = 1 << 0
 
@@ -37,19 +37,20 @@ class DiscordBot(commands.Bot):
         print("セットアップ完了")
 
     async def on_ready(self) -> None:
-        self.update_game_status.start()
+        self.update_status_loop.start()
 
-    async def add_status(self, status:ProcessStatus, ) -> None:
+    def add_status(self, status: ProcessStatus) -> None:
         self.process_status |= status
+        print("add_status: " + status.name)
 
-    async def remove_status(self, status:ProcessStatus, ) -> None:
+    def remove_status(self, status: ProcessStatus) -> None:
         self.process_status &= ~status
+        print("remove_status: " + status.name)
 
-    @tasks.loop(seconds=15)
-    async def update_game_status(self):
+    async def update_status(self) -> None:
         if self.process_status == ProcessStatus.NOTHING:
             self.process_count = 0
-            await self.change_presence(activity=discord.Game(name="待機中"))
+            await self.change_presence(activity=discord.Game(name=f"待機中"))
             return
         
         check_bit = (1 << self.process_count)
@@ -59,6 +60,10 @@ class DiscordBot(commands.Bot):
         self.process_count += 1
         if self.process_count >= len(ProcessStatus):
             self.process_count = 0
+
+    @tasks.loop(seconds=15)
+    async def update_status_loop(self):
+        await self.update_status()
 
 
 async def main():
