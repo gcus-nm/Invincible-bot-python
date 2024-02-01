@@ -135,7 +135,7 @@ class PalCog(commands.Cog, group_name='pal'):
 
     @pal.command(name="update_config", description="PalWorldサーバーの設定ファイルを更新します。")
     @app_commands.rename(config="設定ファイル")
-    @app_commands.describe(config=f"PalWorldサーバーの設定ファイル　※ファイル名は{os.getenv("PALWORLD_CONFIG_FILENAME")}にしてください。")
+    @app_commands.describe(config=f"PalWorldサーバーの設定ファイル　※ファイル名は{os.getenv('PALWORLD_CONFIG_FILENAME')}にしてください。")
     async def update_config(self, ctx:commands.Context, *, config:discord.Attachment):
         if config.filename != os.getenv("PALWORLD_CONFIG_FILENAME"):
             await ctx.send(f"設定ファイル名が違います。正しいファイル名は{os.getenv('PALWORLD_CONFIG_FILENAME')}です。")
